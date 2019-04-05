@@ -4,7 +4,9 @@ go 1.12
 
 require (
 	github.com/cheekybits/genny v1.0.0
+	github.com/gogo/protobuf v1.2.1
 	github.com/golang/mock v1.2.0
+	github.com/golang/protobuf v1.3.0
 	github.com/marten-seemann/qpack v0.1.0
 	github.com/marten-seemann/qtls v0.2.3
 	github.com/onsi/ginkgo v1.7.0
