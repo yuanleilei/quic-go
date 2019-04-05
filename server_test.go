@@ -15,6 +15,7 @@ import (
 	"github.com/lucas-clemente/quic-go/internal/testdata"
 	"github.com/lucas-clemente/quic-go/internal/utils"
 	"github.com/lucas-clemente/quic-go/internal/wire"
+	"github.com/lucas-clemente/quic-go/quictrace"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -78,6 +79,7 @@ var _ = Describe("Server", func() {
 	It("setups with the right values", func() {
 		supportedVersions := []protocol.VersionNumber{protocol.VersionTLS}
 		acceptCookie := func(_ net.Addr, _ *Cookie) bool { return true }
+		tracer := quictrace.NewTracer()
 		config := Config{
 			Versions:          supportedVersions,
 			AcceptCookie:      acceptCookie,
@@ -85,6 +87,7 @@ var _ = Describe("Server", func() {
 			IdleTimeout:       42 * time.Minute,
 			KeepAlive:         true,
 			StatelessResetKey: []byte("foobar"),
+			QuicTracer:        tracer,
 		}
 		ln, err := Listen(conn, tlsConf, &config)
 		Expect(err).ToNot(HaveOccurred())
@@ -96,6 +99,7 @@ var _ = Describe("Server", func() {
 		Expect(reflect.ValueOf(server.config.AcceptCookie)).To(Equal(reflect.ValueOf(acceptCookie)))
 		Expect(server.config.KeepAlive).To(BeTrue())
 		Expect(server.config.StatelessResetKey).To(Equal([]byte("foobar")))
+		Expect(server.config.QuicTracer).To(Equal(tracer))
 		// stop the listener
 		Expect(ln.Close()).To(Succeed())
 	})

@@ -20,6 +20,7 @@ import (
 	"github.com/lucas-clemente/quic-go/internal/qerr"
 	"github.com/lucas-clemente/quic-go/internal/utils"
 	"github.com/lucas-clemente/quic-go/internal/wire"
+	"github.com/lucas-clemente/quic-go/quictrace"
 )
 
 type unpacker interface {
@@ -650,6 +651,10 @@ func (s *session) handleUnpackedPacket(packet *unpackedPacket, rcvTime time.Time
 		}
 	}
 
+	// Only used for tracing.
+	// If we're not tracing, this slice will always remain empty.
+	var frames []wire.Frame
+
 	r := bytes.NewReader(packet.data)
 	var isRetransmittable bool
 	for {
@@ -663,9 +668,24 @@ func (s *session) handleUnpackedPacket(packet *unpackedPacket, rcvTime time.Time
 		if ackhandler.IsFrameRetransmittable(frame) {
 			isRetransmittable = true
 		}
+		if s.config.QuicTracer != nil {
+			frames = append(frames, frame)
+		}
 		if err := s.handleFrame(frame, packet.packetNumber, packet.encryptionLevel); err != nil {
 			return err
 		}
+	}
+
+	if s.config.QuicTracer != nil {
+		s.config.QuicTracer.Trace(s.origDestConnID, quictrace.Event{
+			Time:            time.Now(),
+			EventType:       quictrace.PacketReceived,
+			TransportState:  s.sentPacketHandler.GetCurrentState(),
+			EncryptionLevel: packet.encryptionLevel,
+			PacketNumber:    packet.packetNumber,
+			PacketSize:      protocol.ByteCount(len(packet.data)),
+			Frames:          frames,
+		})
 	}
 
 	if err := s.receivedPacketHandler.ReceivedPacket(packet.packetNumber, packet.encryptionLevel, rcvTime, isRetransmittable); err != nil {
@@ -1115,6 +1135,17 @@ func (s *session) sendPackedPacket(packet *packedPacket) error {
 	defer packet.buffer.Release()
 	if s.firstRetransmittablePacketAfterIdleSentTime.IsZero() && packet.IsRetransmittable() {
 		s.firstRetransmittablePacketAfterIdleSentTime = time.Now()
+	}
+	if s.config.QuicTracer != nil {
+		s.config.QuicTracer.Trace(s.origDestConnID, quictrace.Event{
+			Time:            time.Now(),
+			EventType:       quictrace.PacketSent,
+			TransportState:  s.sentPacketHandler.GetCurrentState(),
+			EncryptionLevel: packet.EncryptionLevel(),
+			PacketNumber:    packet.header.PacketNumber,
+			PacketSize:      protocol.ByteCount(len(packet.raw)),
+			Frames:          packet.frames,
+		})
 	}
 	s.logPacket(packet)
 	return s.conn.Write(packet.raw)

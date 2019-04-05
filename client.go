@@ -241,6 +241,7 @@ func populateClientConfig(config *Config, createdPacketConn bool) *Config {
 		MaxIncomingUniStreams:                 maxIncomingUniStreams,
 		KeepAlive:                             config.KeepAlive,
 		StatelessResetKey:                     config.StatelessResetKey,
+		QuicTracer:                            config.QuicTracer,
 	}
 }
 

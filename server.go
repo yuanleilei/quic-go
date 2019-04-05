@@ -272,6 +272,7 @@ func populateServerConfig(config *Config) *Config {
 		MaxIncomingUniStreams:                 maxIncomingUniStreams,
 		ConnectionIDLength:                    connIDLen,
 		StatelessResetKey:                     config.StatelessResetKey,
+		QuicTracer:                            config.QuicTracer,
 	}
 }
 

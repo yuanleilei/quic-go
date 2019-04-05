@@ -80,6 +80,20 @@ func (mr *MockSentPacketHandlerMockRecorder) GetAlarmTimeout() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAlarmTimeout", reflect.TypeOf((*MockSentPacketHandler)(nil).GetAlarmTimeout))
 }
 
+// GetCurrentState mocks base method
+func (m *MockSentPacketHandler) GetCurrentState() *ackhandler.State {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetCurrentState")
+	ret0, _ := ret[0].(*ackhandler.State)
+	return ret0
+}
+
+// GetCurrentState indicates an expected call of GetCurrentState
+func (mr *MockSentPacketHandlerMockRecorder) GetCurrentState() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCurrentState", reflect.TypeOf((*MockSentPacketHandler)(nil).GetCurrentState))
+}
+
 // GetLowestPacketNotConfirmedAcked mocks base method
 func (m *MockSentPacketHandler) GetLowestPacketNotConfirmedAcked() protocol.PacketNumber {
 	m.ctrl.T.Helper()
